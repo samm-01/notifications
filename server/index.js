@@ -1,44 +1,40 @@
 const express = require('express');
-const app = express();
 const http = require('http');
-const socketIO = require('socket.io');
-const cors = require('cors');
-const { log } = require('console');
+const { Server } = require('socket.io');
+const cors = require('cors'); // Import cors middleware
 
+const app = express();
 const server = http.createServer(app);
-
-const io = socketIO(server, {
+const io = new Server(server, {
     cors: {
-        origin: '*',
-        methods: ['GET', 'POST']
-    }
+        origin: 'http://localhost:3000', // Allow requests from this origin
+        methods: ['GET', 'POST'], // Allow these HTTP methods
+    },
 });
 
+// Enable CORS for REST API routes
 app.use(cors());
-
 app.use(express.json());
 
 io.on('connection', (socket) => {
-    console.log('Client connected', socket.id);
-    // console.log('message', message);
+    console.log('A user connected:', socket.id);
+
     socket.on('disconnect', () => {
-        console.log('Client disconnected');
-    })
-})
+        console.log('User disconnected:', socket.id);
+    });
+});
 
-app.post('/send', (req, res) => {
-    const { message } = req.body;
-    if (!message) {
-        return res.status(400).send('Message is required');
+app.post('/send-notification', (req, res) => {
+    const notification = req.body;
+
+    if (!notification.message || !notification.options) {
+        return res.status(400).send('Invalid notification format.');
     }
-    io.emit('pushNotification', { message });
-    console.log('Notification sent:', message);
 
-    res.status(200).send('Message sent');
-
-
+    io.emit('notification', notification);
+    res.send('Notification sent successfully.');
 });
 
 server.listen(3001, () => {
-    console.log('Server running on port 3001');
+    console.log('Server is running on http://localhost:3001');
 });
