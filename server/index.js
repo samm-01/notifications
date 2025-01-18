@@ -19,16 +19,36 @@ const io = new Server(httpServer, {
 const PORT = process.env.PORT || 8080;
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+    origin: 'http://localhost:3000',  // Allow requests from the frontend
+    methods: ['GET', 'POST'],
+    credentials: true,
+})); app.use(express.json());
 
 // Temporary in-memory notification storage
 const notifications = [];
 
 // API to fetch notifications
 app.get('/api/notifications', (req, res) => {
+    console.log('Fetching notifications...');
     res.json({ success: true, notifications });
 });
+
+app.post('/api/notify', (req, res) => {
+    console.log('Notification request received:', req.body);
+    const { message } = req.body;
+
+    if (!message) {
+        return res.status(400).json({ success: false, message: 'Message is required' });
+    }
+
+    const notification = { message };
+    notifications.push(notification); // Save to in-memory storage
+    io.emit('newNotification', notification); // Emit notification to all connected clients
+
+    res.status(200).json({ success: true, message: 'Notification sent' });
+});
+
 
 // Socket.IO logic
 io.on('connection', (socket) => {
@@ -44,21 +64,6 @@ io.on('connection', (socket) => {
         console.log(`Client disconnected: ${socket.id}`);
     });
 });
-
-app.post('/api/notify', (req, res) => {
-    const { message } = req.body;
-
-    if (!message) {
-        return res.status(400).json({ success: false, message: 'Message is required' });
-    }
-
-    const notification = { message };
-    notifications.push(notification); // Save to in-memory storage
-    io.emit('newNotification', notification); // Emit notification to all connected clients
-
-    res.status(200).json({ success: true, message: 'Notification sent' });
-});
-
 
 // Start the server
 httpServer.listen(PORT, () => {

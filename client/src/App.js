@@ -11,9 +11,12 @@ function App() {
 
   // Fetch existing notifications on mount
   useEffect(() => {
-    fetch('http://localhost:8080/api/notify')
+    // For getting notifications
+    fetch('http://localhost:8080/api/notifications')
       .then((res) => res.json())
-      .then((data) => setNotifications(data.notifications || []));
+      .then((data) => setNotifications(data.notifications || []))
+      .catch((error) => console.error('Error fetching notifications:', error));
+
   }, []);
 
   // Listen for new notifications
