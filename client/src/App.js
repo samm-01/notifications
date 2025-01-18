@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 
-const socket = io('http://localhost:3001');
-
+const socket = io('http://localhost:8080', {
+  path: '/socket.io/'
+});
 function App() {
   // const [pushNotification, setPushNotification] = useState([]);
   // useEffect(() => {
@@ -48,6 +49,7 @@ function App() {
   useEffect(() => {
     // Listen for notifications from the server
     socket.on('notification', (data) => {
+      console.log('Notification received:', data);
       setNotification(data);
     });
 
@@ -74,25 +76,33 @@ function App() {
           borderRadius: '5px',
           marginTop: '20px',
         }}>
-          <p>{notification.message}</p>
+          <p>{notification.type}</p>
+          <p>{notification.payload.message}</p>
+          {/* <p>{notification.options}</p> */}
           <div>
-            {notification.options.map((option) => (
-              <button
-                key={option}
-                onClick={() => handleResponse(option)}
-                style={{
-                  margin: '5px',
-                  padding: '10px 20px',
-                  cursor: 'pointer',
-                  background: '#48BB78',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: '5px',
-                }}
-              >
-                {option}
-              </button>
-            ))}
+            {notification && Array.isArray(notification.options) ? (
+              notification.options.map((option) => (
+                <button
+                  key={option}
+                  onClick={() => handleResponse(option)}
+                  style={{
+                    margin: '5px',
+                    padding: '10px 20px',
+                    cursor: 'pointer',
+                    background: '#48BB78',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '5px',
+                  }}
+                >
+                  {option}
+                </button>
+              ))
+            ) : (
+              <p>No options available.</p>
+            )}
+
+
           </div>
         </div>
       ) : (
