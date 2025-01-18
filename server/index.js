@@ -1,40 +1,66 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors'); // Import cors middleware
+import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
     cors: {
-        origin: 'http://localhost:3000', // Allow requests from this origin
-        methods: ['GET', 'POST'], // Allow these HTTP methods
+        origin: ['http://localhost:3000'], // Replace with your frontend URL
+        methods: ['GET', 'POST'],
+        credentials: true,
     },
 });
 
-// Enable CORS for REST API routes
+const PORT = process.env.PORT || 8080;
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// Temporary in-memory notification storage
+const notifications = [];
+
+// API to fetch notifications
+app.get('/api/notifications', (req, res) => {
+    res.json({ success: true, notifications });
+});
+
+// Socket.IO logic
 io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
+    console.log(`Client connected: ${socket.id}`);
+
+    // Broadcast a new notification to all connected clients
+    socket.on('sendNotification', (data) => {
+        notifications.push(data); // Add notification to storage
+        io.emit('newNotification', data); // Emit to all clients
+    });
 
     socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
+        console.log(`Client disconnected: ${socket.id}`);
     });
 });
 
-app.post('/send-notification', (req, res) => {
-    const notification = req.body;
+app.post('/api/notify', (req, res) => {
+    const { message } = req.body;
 
-    if (!notification.message || !notification.options) {
-        return res.status(400).send('Invalid notification format.');
+    if (!message) {
+        return res.status(400).json({ success: false, message: 'Message is required' });
     }
 
-    io.emit('notification', notification);
-    res.send('Notification sent successfully.');
+    const notification = { message };
+    notifications.push(notification); // Save to in-memory storage
+    io.emit('newNotification', notification); // Emit notification to all connected clients
+
+    res.status(200).json({ success: true, message: 'Notification sent' });
 });
 
-server.listen(3001, () => {
-    console.log('Server is running on http://localhost:3001');
+
+// Start the server
+httpServer.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
 });

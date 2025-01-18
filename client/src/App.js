@@ -1,116 +1,89 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
+import { FaBell } from 'react-icons/fa';
 
-const socket = io('http://localhost:8080', {
-  path: '/socket.io/'
-});
+const socket = io('http://localhost:8080'); // Backend server URL
+
 function App() {
-  // const [pushNotification, setPushNotification] = useState([]);
-  // useEffect(() => {
-  //   if (Notification.permission === 'default' || Notification.permission === 'denied') {
-  //     Notification.requestPermission().then((permission) => {
-  //       console.log('Current Notification permission:', Notification.permission);
-  //       if (permission === 'granted') {
-  //         console.log('Permission granted');
-  //       } else {
-  //         console.log('Permission denied');
-  //       }
-  //     })
-  //   }
-  //   socket.on('pushNotification', (data) => {
-  //     console.log('Received notification', data);
-  //     if (Notification.permission === 'granted') {
-  //       new Notification("New notification ",
-  //         {
-  //           body: data.message,
-  //           // icon: 'https://via.placeholder.com/50'
-  //         });
-  //     }
-  //     setPushNotification((prev) => [...prev, data])
-  //   })
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [newNotification, setNewNotification] = useState(false);
 
-  //   return () => {
-  //     socket.off('pushNotification');
-  //   }
-  // }, [])
-
-  //   return (
-  //     <div>
-  //       <h1>Push Notification</h1>
-  //       <ul> {pushNotification.map((notifi, index) => (
-  //         <li key={index}>{notifi.message}</li>
-  //       ))}</ul>
-  //     </div>
-  //   )
-  // }
-
-  const [notification, setNotification] = useState(null);
-
+  // Fetch existing notifications on mount
   useEffect(() => {
-    // Listen for notifications from the server
-    socket.on('notification', (data) => {
-      console.log('Notification received:', data);
-      setNotification(data);
+    fetch('http://localhost:8080/api/notify')
+      .then((res) => res.json())
+      .then((data) => setNotifications(data.notifications || []));
+  }, []);
+
+  // Listen for new notifications
+  useEffect(() => {
+    socket.on('newNotification', (data) => {
+      setNotifications((prev) => [data, ...prev]); // Add new notification
+      setNewNotification(true); // Highlight the bell icon
     });
 
-    // Cleanup on component unmount
     return () => {
-      socket.off('notification');
+      socket.off('newNotification');
     };
   }, []);
 
-  const handleResponse = (response) => {
-    // Emit response back to the server
-    socket.emit('response', response);
-    alert(`You chose: ${response}`);
-    setNotification(null); // Clear the notification after responding
+  const handleBellClick = () => {
+    setShowNotifications(!showNotifications);
+    setNewNotification(false); // Remove highlight
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>Interactive Notifications</h1>
-      {notification ? (
-        <div style={{
-          border: '1px solid #ccc',
-          padding: '15px',
-          borderRadius: '5px',
-          marginTop: '20px',
-        }}>
-          <p>{notification.type}</p>
-          <p>{notification.payload.message}</p>
-          {/* <p>{notification.options}</p> */}
-          <div>
-            {notification && Array.isArray(notification.options) ? (
-              notification.options.map((option) => (
-                <button
-                  key={option}
-                  onClick={() => handleResponse(option)}
-                  style={{
-                    margin: '5px',
-                    padding: '10px 20px',
-                    cursor: 'pointer',
-                    background: '#48BB78',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '5px',
-                  }}
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
+      {/* Header */}
+      <header className="w-full max-w-3xl flex items-center justify-between bg-white shadow-md p-4 rounded-lg">
+        <h1 className="text-lg font-semibold text-gray-800">Notification System</h1>
+        <div className="relative" onClick={handleBellClick}>
+          <FaBell
+            className={`text-2xl cursor-pointer ${newNotification ? 'text-red-500' : 'text-gray-600'}`}
+          />
+          {newNotification && (
+            <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full"></span>
+          )}
+        </div>
+      </header>
+
+      {/* Notifications Dropdown */}
+      {showNotifications && (
+        <div className="absolute top-16 right-6 w-96 bg-white border border-gray-200 shadow-lg rounded-lg z-10">
+          <h4 className="text-lg font-medium text-gray-700 px-4 py-2 border-b border-gray-100">
+            Notifications
+          </h4>
+          <ul className="divide-y divide-gray-100">
+            {notifications.length > 0 ? (
+              notifications.map((notification, index) => (
+                <li
+                  key={index}
+                  className="px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
                 >
-                  {option}
-                </button>
+                  <div className="flex items-center gap-4">
+                    {/* User Profile Image */}
+                    <img
+                      src={notification.userProfileImage}
+                      alt="User Avatar"
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-800">{notification.username}</div>
+                      <div className="text-xs text-gray-500">{notification.source}</div>
+                      <p className="text-sm text-gray-700">{notification.message}</p>
+                    </div>
+                  </div>
+                </li>
               ))
             ) : (
-              <p>No options available.</p>
+              <li className="px-4 py-3 text-center text-sm text-gray-500">No notifications</li>
             )}
-
-
-          </div>
+          </ul>
         </div>
-      ) : (
-        <p>No notifications at the moment.</p>
       )}
     </div>
   );
-};
-
+}
 
 export default App;
