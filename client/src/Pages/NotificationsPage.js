@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
+import { formatDistanceToNow } from 'date-fns'; // Import relative time function
 
 
 function NotificationsPage() {
@@ -37,31 +38,36 @@ function NotificationsPage() {
                     <ul className="divide-y divide-gray-200">
                         {notifications.map((notification, index) => (
                             <li key={index} className="px-4 py-4 hover:bg-gray-50 cursor-pointer transition">
-                                <div className="flex items-start gap-4">
-                                    {/* Profile Image */}
-                                    <img
-                                        src={notification.profileImage || 'https://via.placeholder.com/40'}
-                                        alt="Profile"
-                                        className="w-10 h-10 rounded-full object-cover"
-                                    />
-                                    <div className="flex-1">
-                                        {/* Notification Content */}
-                                        <div className="font-medium text-gray-800">{notification.username}</div>
-                                        <p className="text-gray-600">{notification.message}</p>
+                                <div className="flex items-center justify-between gap-4">
+                                    {/* Left Section - Profile Image & Notification Content */}
+                                    <div className="flex items-center gap-4">
+                                        <img
+                                            src={notification.profileImage || 'https://via.placeholder.com/40'}
+                                            alt="Profile"
+                                            className="w-10 h-10 rounded-full object-cover"
+                                        />
+                                        <div className="flex flex-col">
+                                            <div className="font-medium text-gray-800">{notification.username}</div>
+                                            <p className="text-gray-600">{notification.message}</p>
+                                        </div>
+                                    </div>
 
-                                        {/* Document Link */}
+                                    {/* Right Section - Timestamp & Document Link */}
+                                    <div className="flex flex-col items-end gap-1">
+                                        {/* <p className="text-xs text-gray-400">{new Date(notification.timestamp).toLocaleString()}</p> */}
+                                        {/* Format relative time */}
+                                        <p className="text-xs text-gray-400">
+                                            {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
+                                        </p>
                                         {notification.document && (
                                             <a
                                                 href={`http://localhost:8080${notification.document}`}
                                                 target="_blank"
-                                                className="text-sm text-blue-600 hover:underline mt-1 inline-block"
+                                                className="text-sm text-blue-600 hover:underline"
                                             >
-                                                Download Attachment
+                                                Download
                                             </a>
                                         )}
-
-                                        {/* Timestamp */}
-                                        <p className="text-xs text-gray-400 mt-1">{new Date(notification.timestamp).toLocaleString()}</p>
                                     </div>
                                 </div>
                             </li>

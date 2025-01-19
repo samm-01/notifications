@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { FaBell } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns'; // Import relative time function
+
 
 const socket = io('http://localhost:8080'); // Backend server URL
 
@@ -87,10 +89,9 @@ function Home() {
                                             <div className="font-semibold text-gray-800">{notification.username}</div>
                                             <div className="text-xs text-gray-500">{notification.source}</div>
                                             <p className="text-sm text-gray-700">{notification.message}</p>
-                                            <div className="text-xs text-gray-400">
-                                                {new Date(notification.timestamp).toLocaleString()} {/* Format timestamp */}
-
-                                            </div>
+                                            <p className="text-xs text-gray-400">
+                                                {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
+                                            </p>
                                             {notification.document && (
                                                 <a
                                                     href={`http://localhost:8080${notification.document}`}
