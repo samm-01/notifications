@@ -58,7 +58,10 @@ router.post('/notify', upload.single('document'), (req, res) => {
     notifications.push(notification); // Save to in-memory storage
 
     req.io.emit('newNotification', notification); // Emit notification to all connected clients
-    res.status(200).json({ success: true, message: 'Notification sent' });
+    res.status(200).json({
+        success: true, message: 'Notification sent',
+        notification, // Include the full notification object in the response
+    });
 });
 
 export default router;

@@ -89,16 +89,17 @@ function Home() {
                                             <p className="text-sm text-gray-700">{notification.message}</p>
                                             <div className="text-xs text-gray-400">
                                                 {new Date(notification.timestamp).toLocaleString()} {/* Format timestamp */}
-                                                {notification.document && (
-                                                    <a
-                                                        href={`http://localhost:8080${notification.document}`}
-                                                        download
-                                                        className="text-blue-600 underline text-sm mt-2"
-                                                    >
-                                                        Download Document
-                                                    </a>
-                                                )}
+
                                             </div>
+                                            {notification.document && (
+                                                <a
+                                                    href={`http://localhost:8080${notification.document}`}
+                                                    download
+                                                    className="text-blue-600 underline text-sm mt-2"
+                                                >
+                                                    Download Document
+                                                </a>
+                                            )}
                                         </div>
                                     </div>
                                 </li>

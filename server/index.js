@@ -6,13 +6,21 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { setupSocket } from './socket/socket-handler.js';
 import { PORT } from './config/dotenv-config.js';
+import { fileURLToPath } from 'url';
+import path from 'path'; // Import the 'path' module
+import { dirname, join } from 'path'; // Importing 'join' method
 
 
 const app = express();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 
 // Serve uploaded files
-app.use('/uploads', express.static('uploads'));
+// app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'routes/uploads')));
+
 
 // Middleware
 app.use(corsMiddleware);
