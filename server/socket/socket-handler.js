@@ -6,6 +6,7 @@ export const setupSocket = (io) => {
             console.log('Notification received via socket:', data);
             const timestamp = new Date().toISOString(); // Add timestamp
             data.timestamp = timestamp;
+            notifications.push(data); // Add notification to storage
             io.emit('newNotification', data);
         });
 

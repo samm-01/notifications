@@ -47,7 +47,7 @@ function Home() {
 
                 <div className="relative" onClick={handleBellClick}>
                     <FaBell
-                        className={`text-2xl cursor-pointer ${newNotification ? 'text-red-500' : 'text-gray-600'}`}
+                        className={`text-2xl cursor-pointer text-gray-600`}
                     />
                     {newNotification && (
                         <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full"></span>
@@ -69,20 +69,6 @@ function Home() {
                     <h4 className="text-lg font-medium text-gray-700 px-4 py-2 border-b border-gray-100">
                         Notifications
                     </h4>
-                    {/* <ul className="divide-y divide-gray-100">
-                        {notifications.length > 0 ? (
-                            notifications.map((notification, index) => (
-                                <li
-                                    key={index}
-                                    className="px-4 py-3 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
-                                >
-                                    {notification.message}
-                                </li>
-                            ))
-                        ) : (
-                            <li className="px-4 py-3 text-center text-sm text-gray-500">No notifications</li>
-                        )}
-                    </ul> */}
                     <ul className="divide-y divide-gray-100">
                         {notifications.length > 0 ? (
                             notifications.map((notification, index) => (
@@ -103,6 +89,15 @@ function Home() {
                                             <p className="text-sm text-gray-700">{notification.message}</p>
                                             <div className="text-xs text-gray-400">
                                                 {new Date(notification.timestamp).toLocaleString()} {/* Format timestamp */}
+                                                {notification.document && (
+                                                    <a
+                                                        href={`http://localhost:8080${notification.document}`}
+                                                        download
+                                                        className="text-blue-600 underline text-sm mt-2"
+                                                    >
+                                                        Download Document
+                                                    </a>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

@@ -7,7 +7,12 @@ import { Server } from 'socket.io';
 import { setupSocket } from './socket/socket-handler.js';
 import { PORT } from './config/dotenv-config.js';
 
+
 const app = express();
+
+
+// Serve uploaded files
+app.use('/uploads', express.static('uploads'));
 
 // Middleware
 app.use(corsMiddleware);
